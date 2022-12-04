@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Changer</title>
+</head>
+
+<body>
+    <h1>Hello</h1>
+    <form id="form" action="http://localhost:8081" method="POST">
+        <p>Upload a voice sample (.wav):</p>
+        <input type="file" id="recorder" name="recorder" accept=".wav" capture required />
+        <br><br>
+        <audio id="player1" controls>
+            Your browser does not support the audio element.
+        </audio>
+        <p>Choose an environment:</p>
+        <input type="radio" id="car" name="picker" value="car" required />
+        <label for="car">Car</label><br />
+        <input type="radio" id="cathedral" name="picker" value="cathedral" required />
+        <label for="cathedral">Cathedral</label><br />
+        <input type="radio" id="balloon" name="picker" value="balloon" required />
+        <label for="balloon">Balloon</label><br />
+        <input type="radio" id="snow" name="picker" value="snow" required />
+        <label for="snow">Snow</label><br />
+        <br />
+        <button type="submit" style="background-color: yellow">
+            Show me the moneeEeeey!
+        </button>
+    </form>
+    <hr>
+    <p>Result:</p>
+    <audio id="player2" controls>
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const recorder = document.getElementById("recorder");
+        const pickers = document.getElementsByName("picker");
+        const player1 = document.getElementById("player1");
+        const player2 = document.getElementById("player2");
+        const form = document.getElementById("form");
+
+        function reqListener() {
+            const response = this.response;
+            const url = URL.createObjectURL(response);
+            player2.src = url;
+        }
+
+        const req = new XMLHttpRequest();
+        req.addEventListener("load", reqListener);
+
+        const formData = new FormData();
+        const reader = new FileReader();
+
+        reader.addEventListener('load', (event) => {
+            voice = event.target.result;
+            formData.set('voice', new Blob([voice], { type: "audio/wav" }), 'input.wav');
+        });
+
+        recorder.addEventListener('change', function (e) {
+            file = e.target.files[0];
+            const url = URL.createObjectURL(file);
+            player1.src = url;
+            reader.readAsArrayBuffer(file);
+        });
+
+        pickers.forEach(picker => picker.addEventListener('click', function (e) {
+            env = e.target.value;
+            formData.set("env", env);
+        }));
+
+        function onSubmit(e) {
+            e.preventDefault();
+
+            req.open("POST", "http://localhost:8081/");
+            req.responseType = 'blob';
+            req.send(formData);
+        }
+
+        form.addEventListener("submit", onSubmit);
+
+    </script>
+</body>
+
+</html>
